@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Cameras</title>
+</head>
+<style>
+    table, th, td {
+      border:1px solid black;
+    }
+</style>
+<body>
+<h1>Registered Cameras</h1>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.0/jquery.min.js"></script>
+<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.0.7/angular.min.js"></script>
+<form id = "cameras" method="post">
+    <table id="Table1" style="width:100%">
+        <tr>
+          <th></th>
+            <th>CAMERA ID</th>
+            <th>CAMERA NAME</th>
+            <th>CAMERA PURPOSE</th>
+            <th>CAMERA URL</th>
+        </tr>
+            {% for camera in cameras %}
+                <tr>
+                 <td><input type="checkbox"/></td>
+                  <td>{{ camera.cameraid }}</td>
+                  <td>{{ camera.cameraname }}</td>
+                  <td>{{ camera.camerapurpose }}</td>
+                  <td>{{ camera.cameraurl }}</td>
+                </tr>
+            {% endfor %}
+    </table>
+</form>
+<script type="text/javascript">
+    function GetSelected() {
+        var grid = document.getElementById("Table1");
+        var checkBoxes = grid.getElementsByTagName("INPUT");
+        var message = "";
+        for (var i = 0; i < checkBoxes.length; i++) {
+            if (checkBoxes[i].checked) {
+                var row = checkBoxes[i].parentNode.parentNode;
+                message += row.cells[1].innerHTML;
+                message += ",";
+            }
+        }
+        const URL = '/view'
+        const xhr = new XMLHttpRequest();
+        sender = JSON.stringify(message)
+        xhr.open('POST', URL);
+        xhr.send(sender);
+    }
+</script>
+<a href =  "{{url_for('view')}}">
+    <input type="button" value="VIEW" onclick="GetSelected()" />
+</a>
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <ul class=flashes>
+    {% for message in messages %}
+      {{ message }}
+    {% endfor %}
+    </ul>
+  {% endif %}
+{% endwith %}
+</body>
+</html>

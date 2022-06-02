@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Register</title>
+</head>
+<body>
+<h1>Welcome to New Camera Registration</h1>
+<form method="post" action="">
+    <label for="cameraname">Camera Name</label><br>
+    <input type="text" id="cameraname" name="cameraname" value=""><br><br>
+    <label for="camerapurpose">Camera Purpose</label><br>
+    <input type="text" id="camerapurpose" name="camerapurpose" value=""><br><br>
+    <label for="cameraurl">Camera URL</label><br>
+    <input type="text" id="cameraurl" name="cameraurl" value=""><br><br>
+    <input type="Submit" value="Submit">
+</form>
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <ul class=flashes>
+    {% for message in messages %}
+      {{ message }}
+    {% endfor %}
+    </ul>
+  {% endif %}
+{% endwith %}
+</body>
+</html>

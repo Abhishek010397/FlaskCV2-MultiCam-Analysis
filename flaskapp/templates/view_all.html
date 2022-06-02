@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>VIEW ALL</title>
+    <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/styles.css') }}">
+</head>
+<body>
+
+<h2 class="section-heading">MULTI-CAMERA</h2>
+    {% for data in datas %}
+        <div class="column-4 project-1" style="background: url('http://localhost:5000/video_feed/{{ data }}')">
+            <h2 class="project-text"></h2>
+        </div>
+    {% endfor %}
+
+</body>
+</html>
