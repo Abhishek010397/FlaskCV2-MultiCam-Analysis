@@ -25,11 +25,12 @@
         </tr>
             {% for camera in cameras %}
                 <tr>
-                 <td><input type="checkbox"/></td>
-                  <td>{{ camera.cameraid }}</td>
-                  <td>{{ camera.cameraname }}</td>
-                  <td>{{ camera.camerapurpose }}</td>
-                  <td>{{ camera.cameraurl }}</td>
+                    <td><input type="checkbox"/></td>
+                    <td>{{ camera.cameraid }}</td>
+                    <td>{{ camera.cameraname }}</td>
+                    <td>{{ camera.camerapurpose }}</td>
+                    <td>{{ camera.cameraurl }}</td>
+                    <td><input type="button" value="ENABLE" onclick="GetChecked()"/></td>
                 </tr>
             {% endfor %}
     </table>
@@ -52,6 +53,24 @@
         xhr.open('POST', URL);
         xhr.send(sender);
     }
+    function GetChecked() {
+        var grid = document.getElementById("Table1");
+        var checkBoxes = grid.getElementsByTagName("INPUT");
+        var message = "";
+        for (var i = 0; i < checkBoxes.length; i++) {
+            if (checkBoxes[i].checked) {
+                var row = checkBoxes[i].parentNode.parentNode;
+                message += row.cells[1].innerHTML;
+                message += ",";
+            }
+        }
+        const URL = '/enable_cam'
+        const xhr = new XMLHttpRequest();
+        sender = JSON.stringify(message)
+        xhr.open('POST', URL);
+        xhr.send(sender);
+    }
+
 </script>
 <a href =  "{{url_for('view')}}">
     <input type="button" value="VIEW" onclick="GetSelected()" />
