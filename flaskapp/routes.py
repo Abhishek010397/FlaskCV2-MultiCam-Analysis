@@ -17,6 +17,8 @@ Names = []
 Images = []
 ActiveThread = []
 data_list = []
+camera_list = []
+URL_LIST = []
 path = './Images'
 dir = os.listdir(path)
 
@@ -38,6 +40,34 @@ def findEncodings(images):
     return encodeList
 
 encodedListKnown = findEncodings(Images)
+
+def render_camera_feed(url):
+    cam = VideoGear(source=url, logging=True)
+    if len(URL_LIST) == 0:
+        print('Starting Camera',url)
+        cap = cam.start()
+        URL_LIST.append(url)
+        return cap
+    if len(URL_LIST) == 1:
+        if [URL_LIST] != url:
+            URL_LIST.append(url)
+            print('Starting Camera', url)
+            cap = cam.start()
+            return cap
+        if [URL_LIST] == url:
+            print('Camera is Running')
+            return cam
+    if len(URL_LIST) > 1:
+        res = [existing_url for existing_url in URL_LIST if (existing_url in url)]
+        if str(bool(res)) == 'False':
+            print('Starting Camera', url)
+            cap = cam.start()
+            URL_LIST.append(url)
+            return cap
+        else:
+            print('Camera is Running')
+            return cam
+
 
 @app.route('/camera',methods=['GET', 'POST'])
 def camera():
@@ -78,7 +108,8 @@ def view():
 def gen_frames(camera_id):
     cam = find_camera(camera_id)
     print("Cam",cam)
-    cap = VideoGear(source=cam, logging=True).start()
+    cap = render_camera_feed(cam)
+    print(URL_LIST)
     while True:
         frame = cap.read()
         frame = cv2.rotate(frame, cv2.cv2.ROTATE_90_COUNTERCLOCKWISE)
@@ -94,7 +125,6 @@ def gen_frames(camera_id):
 
 @app.route('/video_feed/<string:purpose>/<string:list_id>/', methods=["GET","POST"])
 def video_feed(list_id,purpose):
-    print("here")
     print("Purpose",purpose)
     return Response(gen_frames(list_id),
                           mimetype='multipart/x-mixed-replace; boundary=frame')
@@ -110,17 +140,17 @@ def enable_cam():
         new_list = [i for i in new_list if i]
         if len(new_list) > 1:
             for ele in new_list:
-                data_list.append(ele)
+                camera_list.append(ele)
         if len(new_list) == 1:
             for ele in new_list:
-                data_list.append(ele)
-    print(data_list)
-    camera_threading(data_list)
+                camera_list.append(ele)
+    print(camera_list)
+    camera_threading(camera_list)
     return render_template('list_cameras.html',cameras=cameras)
 
-def camera_threading(data_list):
-    if len(data_list) > 1:
-        for list_id in data_list:
+def camera_threading(camera_list):
+    if len(camera_list) > 1:
+        for list_id in camera_list:
             cam=Camera.query.filter_by(cameraid=list_id).first()
             purpose = cam.camerapurpose
             incoming_thread = purpose+list_id
@@ -138,10 +168,12 @@ def camera_threading(data_list):
                         ActiveThread.append(invoke_Thread(list_id, purpose))
                     else:
                         print('Thread is Active')
-    if len(data_list) ==1:
-        for list_id in data_list:
+    if len(camera_list) ==1:
+        for list_id in camera_list:
             cam = Camera.query.filter_by(cameraid=list_id).first()
+            print(cam)
             purpose = cam.camerapurpose
+            print(purpose)
             incoming_thread = purpose + list_id
             if len(ActiveThread) == 0:
                 ActiveThread.append(invoke_Thread(list_id, purpose))
@@ -168,23 +200,27 @@ def invoke_Thread(list_id,purpose):
 
 def camera_analysis(camera_id,camera_purpose):
     cam = find_camera(camera_id)
-    cap = VideoGear(source=cam, logging=True).start()
+    print("CAM",cam)
+    cap = render_camera_feed(cam)
+    print(URL_LIST)
     if camera_purpose == 'face_recognition':
         while True:
             frame = cap.read()
-            if frame is not None:
-                imgS = cv2.rotate(frame, cv2.cv2.ROTATE_90_COUNTERCLOCKWISE)
-                imgS = cv2.resize(imgS, (0, 0), None, 0.25, 0.25)
-                imgS = cv2.cvtColor(imgS, cv2.COLOR_BGR2RGB)
-                facesCurFrame = face_recognition.face_locations(imgS)
-                encodesCurFrame = face_recognition.face_encodings(imgS, facesCurFrame)
+            rgb_frame = frame[:, :, ::-1]
+            image = cv2.rotate(rgb_frame, cv2.ROTATE_90_COUNTERCLOCKWISE)
+            if rgb_frame is not None:
+                facesCurFrame = face_recognition.face_locations(rgb_frame)
+                print(facesCurFrame)
+                encodesCurFrame = face_recognition.face_encodings(rgb_frame, facesCurFrame)
+                print(encodesCurFrame)
                 for encodeFace, faceLoc in zip(encodesCurFrame, facesCurFrame):
                     matches = face_recognition.compare_faces(encodedListKnown, encodeFace)
                     faceDis = face_recognition.face_distance(encodedListKnown, encodeFace)
                     matchIndex = np.argmin(faceDis)
                     if matches[matchIndex]:
+                        print('Here')
                         name = Names[matchIndex].upper()
-                        print(name)
+                        print('Matched',name)
             else:
                 print("Not Matched")
     if camera_purpose == 'vehicle_detection':
