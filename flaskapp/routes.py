@@ -109,7 +109,7 @@ def view():
 
 def gen_frames(camera_id):
     cam = find_camera(camera_id)
-    print("INCOMING CAMERA",cam)
+    print("Cam",cam)
     cap = render_camera_feed(cam)
     while True:
         frame = cap.read()
@@ -119,7 +119,8 @@ def gen_frames(camera_id):
             break
         else:
             ret, buffer = cv2.imencode('.jpg', frame)
-            frame = buffer.tobytes()
+            data_encode = np.array(buffer)
+            frame = data_encode.tobytes()
             yield (b'--frame\r\n'
                    b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
 
