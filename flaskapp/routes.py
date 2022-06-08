@@ -13,6 +13,7 @@ import face_recognition
 import numpy as np
 import pandas as pd
 
+
 Names = []
 Images = []
 ActiveThread = []
@@ -48,13 +49,14 @@ def render_camera_feed(url):
         cap = cam.start()
         URL_LIST.append(url)
         return cap
-    if len(URL_LIST) == 1:
-        if [URL_LIST] != url:
+    if len(URL_LIST) == 1 :
+        if URL_LIST != [url]:
+            print('True')
             URL_LIST.append(url)
             print('Starting Camera', url)
             cap = cam.start()
             return cap
-        if [URL_LIST] == url:
+        if URL_LIST == [url]:
             print('Camera is Running')
             return cam
     if len(URL_LIST) > 1:
@@ -107,9 +109,8 @@ def view():
 
 def gen_frames(camera_id):
     cam = find_camera(camera_id)
-    print("Cam",cam)
+    print("INCOMING CAMERA",cam)
     cap = render_camera_feed(cam)
-    print(URL_LIST)
     while True:
         frame = cap.read()
         frame = cv2.rotate(frame, cv2.cv2.ROTATE_90_COUNTERCLOCKWISE)
@@ -144,7 +145,6 @@ def enable_cam():
         if len(new_list) == 1:
             for ele in new_list:
                 camera_list.append(ele)
-    print(camera_list)
     camera_threading(camera_list)
     return render_template('list_cameras.html',cameras=cameras)
 
@@ -171,9 +171,7 @@ def camera_threading(camera_list):
     if len(camera_list) ==1:
         for list_id in camera_list:
             cam = Camera.query.filter_by(cameraid=list_id).first()
-            print(cam)
             purpose = cam.camerapurpose
-            print(purpose)
             incoming_thread = purpose + list_id
             if len(ActiveThread) == 0:
                 ActiveThread.append(invoke_Thread(list_id, purpose))
@@ -199,28 +197,28 @@ def invoke_Thread(list_id,purpose):
     return current_thread_name
 
 def camera_analysis(camera_id,camera_purpose):
+    global count
+    count = 0
     cam = find_camera(camera_id)
-    print("CAM",cam)
+    print("INCOMING CAM URL ",cam)
     cap = render_camera_feed(cam)
-    print(URL_LIST)
     if camera_purpose == 'face_recognition':
         while True:
             frame = cap.read()
             rgb_frame = frame[:, :, ::-1]
             image = cv2.rotate(rgb_frame, cv2.ROTATE_90_COUNTERCLOCKWISE)
             if rgb_frame is not None:
-                facesCurFrame = face_recognition.face_locations(rgb_frame)
-                print(facesCurFrame)
-                encodesCurFrame = face_recognition.face_encodings(rgb_frame, facesCurFrame)
-                print(encodesCurFrame)
+                facesCurFrame = face_recognition.face_locations(image)
+                encodesCurFrame = face_recognition.face_encodings(image, facesCurFrame)
                 for encodeFace, faceLoc in zip(encodesCurFrame, facesCurFrame):
                     matches = face_recognition.compare_faces(encodedListKnown, encodeFace)
                     faceDis = face_recognition.face_distance(encodedListKnown, encodeFace)
                     matchIndex = np.argmin(faceDis)
                     if matches[matchIndex]:
-                        print('Here')
                         name = Names[matchIndex].upper()
                         print('Matched',name)
+                        count = count+1
+                        print(count)
             else:
                 print("Not Matched")
     if camera_purpose == 'vehicle_detection':
