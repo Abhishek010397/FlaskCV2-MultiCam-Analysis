@@ -1,0 +1,8 @@
+face_recognition
+Flask
+flask_sqlalchemy
+flask_wtf
+numpy
+pandas
+vidgear
+WTForms
