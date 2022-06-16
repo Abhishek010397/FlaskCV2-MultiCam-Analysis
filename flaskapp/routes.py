@@ -1,9 +1,7 @@
-from flask import render_template, flash,request,Response,redirect,url_for
+from flask import render_template, flash,request,Response
 from flaskapp import app, db
 from flaskapp.forms import CameraForm
 from flaskapp.models import Camera
-import cv2
-import json
 import re
 import threading
 from vidgear.gears import VideoGear
@@ -11,7 +9,6 @@ import os
 import cv2
 import face_recognition
 import numpy as np
-import pandas as pd
 
 
 Names = []
